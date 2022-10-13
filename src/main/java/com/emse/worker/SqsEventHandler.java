@@ -18,12 +18,14 @@ import java.util.HashMap;
 
 public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
     public String handleRequest(SQSEvent request, Context context) {
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
-        context.getLogger().log("Invocation started: " + timeStamp);
+        context.getLogger().log("SQS event handler invoked");
+        String timeStamp;
 
         for(SQSEvent.SQSMessage msg : request.getRecords()){
-            String[] args = msg.getBody().split(";");
+            timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
+            context.getLogger().log("Invocation started: " + timeStamp);
 
+            String[] args = msg.getBody().split(";");
             AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
             S3Object s3Object = s3Client.getObject(args[0], args[1]);
             String fileName = s3Object.getKey();
@@ -31,16 +33,19 @@ public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
             BufferedReader reader = new BufferedReader(streamReader);
             HashMap<String, Triplet<Integer, Double, Double>> nonProcessedData = Processing.read(reader);
             String csv = Processing.computeAndWrite(nonProcessedData, Processing.getFileData(fileName).getValue1());
-            s3Client.putObject(args[0], Processing.getFileData(fileName).getValue0(), csv);
-            s3Client.deleteObject(args[0], args[1]);
+            context.getLogger().log("File " + fileName + " has been processed");
 
-            System.out.println("File processing finished");
+            s3Client.putObject(args[0], Processing.getFileData(fileName).getValue0(), csv);
+            context.getLogger().log("Processed file saved to S3");
+
+            s3Client.deleteObject(args[0], args[1]);
+            context.getLogger().log("Original file deleted from S3");
+
+            timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
+            context.getLogger().log("Invocation completed: " + timeStamp);
         }
 
-
-
-        timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
-        context.getLogger().log("Invocation completed: " + timeStamp);
+        context.getLogger().log("File processing finished");
         return "Ok";
     }
 }
