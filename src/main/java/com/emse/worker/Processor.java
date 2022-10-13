@@ -17,6 +17,8 @@ import java.util.HashMap;
 
 public class Processor {
     public static void main(String[] args) { //to modify to handle all requests queued in SQS...
+        long startTime = System.nanoTime();
+
         SqsClient sqsClient = SqsClient.builder().httpClient(UrlConnectionHttpClient.builder().build()).build();;
         String url = "https://sqs.us-east-1.amazonaws.com/818564790073/StoreSalesUploadQueue";
 
@@ -51,6 +53,9 @@ public class Processor {
         }
 
         System.out.println("File processing finished");
+
+        long elapsedTime = System.nanoTime() - startTime;
+        System.out.println("Total elapsed time: " + elapsedTime*10e-9 + " seconds");
     }
     //test with: databucket8906 01-10-2022-store2.csv
 }
