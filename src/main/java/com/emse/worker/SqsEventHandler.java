@@ -48,8 +48,6 @@ public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
             s3Client.deleteObject(args[0], args[1]);
             context.getLogger().log("Original file deleted from S3");
 
-
-
             timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
             context.getLogger().log("Invocation completed: " + timeStamp);
         }

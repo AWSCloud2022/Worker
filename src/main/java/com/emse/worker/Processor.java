@@ -16,11 +16,11 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 public class Processor {
-    public static void main(String[] args) { //to modify to handle all requests queued in SQS...
+    public static void main(String[] args) {
         long startTime = System.nanoTime();
 
         SqsClient sqsClient = SqsClient.builder().httpClient(UrlConnectionHttpClient.builder().build()).build();;
-        String url = "https://sqs.us-east-1.amazonaws.com/818564790073/StoreSalesUploadQueue";
+        String url = "https://sqs.us-east-1.amazonaws.com/818564790073/ManualStoreSalesUploadQueue";
 
         System.out.println("SQS event handler invoked");
         String timeStamp;
