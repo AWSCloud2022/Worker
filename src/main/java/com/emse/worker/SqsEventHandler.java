@@ -13,21 +13,15 @@ import org.javatuples.Triplet;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.HashMap;
 
 public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
     public String handleRequest(SQSEvent request, Context context) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
 
         context.getLogger().log("SQS event handler invoked");
-        String timeStamp;
 
         for(SQSEvent.SQSMessage msg : request.getRecords()){
-            timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
-            context.getLogger().log("Invocation started: " + timeStamp);
-
             String json = msg.getBody();
             String message = JsonPath.read(json, "$.Message");
 
@@ -47,15 +41,12 @@ public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
 
             s3Client.deleteObject(args[0], args[1]);
             context.getLogger().log("Original file deleted from S3");
-
-            timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Calendar.getInstance().getTime());
-            context.getLogger().log("Invocation completed: " + timeStamp);
         }
 
         context.getLogger().log("File processing finished");
 
-        long elapsedTime = System.nanoTime() - startTime;
-        context.getLogger().log("Total elapsed time: " + elapsedTime*10e-9 + " seconds");
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        context.getLogger().log("Total elapsed time: " + elapsedTime*10e-3 + " seconds");
 
         return "Ok";
     }
