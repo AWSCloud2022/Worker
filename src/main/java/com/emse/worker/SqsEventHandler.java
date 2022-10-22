@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
+import com.emse.worker.helper.Processing;
 import com.jayway.jsonpath.JsonPath;
 import org.javatuples.Triplet;
 
@@ -17,7 +18,7 @@ import java.util.HashMap;
 
 public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
     public String handleRequest(SQSEvent request, Context context) {
-        long startTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
 
         context.getLogger().log("SQS event handler invoked");
 
@@ -45,8 +46,8 @@ public class SqsEventHandler implements RequestHandler<SQSEvent, Object> {
 
         context.getLogger().log("File processing finished");
 
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        context.getLogger().log("Total elapsed time: " + elapsedTime*10e-3 + " seconds");
+        //long elapsedTime = System.currentTimeMillis() - startTime;
+        //context.getLogger().log("Total elapsed time: " + elapsedTime*10e-3 + " seconds");
 
         return "Ok";
     }

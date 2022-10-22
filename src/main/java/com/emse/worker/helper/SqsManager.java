@@ -1,4 +1,4 @@
-package com.emse.worker;
+package com.emse.worker.helper;
 
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
