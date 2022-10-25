@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.emse.worker.helper.Processing;
 import com.emse.worker.helper.SqsManager;
+import com.jayway.jsonpath.JsonPath;
 import org.javatuples.Triplet;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -19,10 +20,10 @@ import java.util.TimerTask;
 
 public class Processor {
     //Enter the url of the SQS queue you wish to be accessed by the Worker
-    private static final String sqsUrl = "";
+    private static final String sqsUrl = "https://sqs.us-east-1.amazonaws.com/818564790073/demoQueueApp";
 
     public static void main(String[] args) {
-        long interval = 120;
+        long interval = 120L;
 
         if (args.length != 0) {
             if (args.length == 2 && args[0].equals("--interval")) {
@@ -40,26 +41,31 @@ public class Processor {
         }
 
         System.out.println(ANSI_GREEN+ "The Worker is now active" + ANSI_WHITE);
+        System.out.println(ANSI_GREEN+ "First processing in 10 seconds" + ANSI_WHITE);
 
         Timer timer = new Timer();
+        final long interval2 = interval;
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 process();
+                System.out.println("Next check in " + interval2 + " seconds");
             }
         };
 
-        timer.schedule(task, 10000L, interval * 1000);
+        timer.schedule(task, 10000L, interval * 1000L);
     }
 
     private static void process() {
-        System.out.println("SQS message handler invoked");
         //long startTime = System.currentTimeMillis();
 
         SqsClient sqsClient = SqsClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()).build();
 
         for(Message msg : SqsManager.receiveMessages(sqsClient, sqsUrl)) {
-            String[] info = msg.body().split(";");
+            String json = msg.body();
+            String message = JsonPath.parse(json).read("$.Message");
+            System.out.println(message);
+            String[] info = message.split(";");
             AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
             S3Object s3Object = s3Client.getObject(info[0], info[1]);
             String fileName = s3Object.getKey();
@@ -78,9 +84,6 @@ public class Processor {
             SqsManager.deleteMessage(sqsClient, sqsUrl, msg); //explicitly delete the message in the SQS queue
             System.out.println("Deleted SQS message");
         }
-
-        System.out.println("File processing finished");
-
         //long elapsedTime = System.currentTimeMillis() - startTime;
         //System.out.println(ANSI_BLUE + "Total elapsed time: " + elapsedTime*10e-3 + " seconds" + ANSI_WHITE);
     }
